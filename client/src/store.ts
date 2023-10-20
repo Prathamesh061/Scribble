@@ -1,15 +1,13 @@
-import { combineReducers } from "redux";
-import { createStore, applyMiddleware } from "redux";
-import thunk from "redux-thunk";
-import { composeWithDevTools } from "redux-devtools-extension";
+import { configureStore } from "@reduxjs/toolkit";
+import MenuReducer from "./features/menu/menuSlice";
+import ToolboxReducer from "./features/toolbox/toolboxSlice";
 
-const reducer = combineReducers({});
+export const store = configureStore({
+  reducer: {
+    menu: MenuReducer,
+    toolbox: ToolboxReducer,
+  },
+});
+export type RootState = ReturnType<typeof store.getState>;
 
-const middleware = [thunk];
-
-const store = createStore(
-  reducer,
-  composeWithDevTools(applyMiddleware(...middleware))
-);
-
-export default store;
+export type AppDispatch = typeof store.dispatch;
