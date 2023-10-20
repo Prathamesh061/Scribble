@@ -71,39 +71,43 @@ function Toolbox() {
           e.stopPropagation();
         }}
       >
-        <div className="flex w-full justify-around py-2 mb-3">
-          <div
-            className="h-4 w-4 rounded-sm hover:cursor-pointer hover:scale-105 transition-all hover:outline focue:outline outline-gray-500"
-            style={{ backgroundColor: COLORS.BLACK }}
-            onClick={() => updateColor(COLORS.BLACK)}
-          />
-          <div
-            className="h-4 w-4 rounded-sm hover:cursor-pointer hover:scale-105 transition-all hover:outline focue:outline outline-gray-500"
-            style={{ backgroundColor: COLORS.RED }}
-            onClick={() => updateColor(COLORS.RED)}
-          />
-          <div
-            className="h-4 w-4 rounded-sm hover:cursor-pointer hover:scale-105 transition-all hover:outline focue:outline outline-gray-500"
-            style={{ backgroundColor: COLORS.GREEN }}
-            onClick={() => updateColor(COLORS.GREEN)}
-          />
-          <div
-            className="h-4 w-4 rounded-sm hover:cursor-pointer hover:scale-105 transition-all hover:outline focue:outline outline-gray-500"
-            style={{ backgroundColor: COLORS.BLUE }}
-            onClick={() => updateColor(COLORS.BLUE)}
-          />
-          <div
-            className="h-4 w-4 rounded-sm hover:cursor-pointer hover:scale-105 transition-all hover:outline focue:outline outline-gray-500"
-            style={{ backgroundColor: COLORS.ORANGE }}
-            onClick={() => updateColor(COLORS.ORANGE)}
-          />
-          <div
-            className="h-4 w-4 rounded-sm hover:cursor-pointer hover:scale-105 transition-all hover:outline focue:outline outline-gray-500"
-            style={{ backgroundColor: COLORS.YELLOW }}
-            onClick={() => updateColor(COLORS.YELLOW)}
-          />
+        <div className="w-full">
+          <h3 className="font-serif text-gray-700">Stroke color</h3>
+          <div className="flex w-full justify-around py-2 mb-3">
+            <div
+              className="h-4 w-4 rounded-sm hover:cursor-pointer hover:scale-105 transition-all hover:outline focue:outline outline-gray-500"
+              style={{ backgroundColor: COLORS.BLACK }}
+              onClick={() => updateColor(COLORS.BLACK)}
+            />
+            <div
+              className="h-4 w-4 rounded-sm hover:cursor-pointer hover:scale-105 transition-all hover:outline focue:outline outline-gray-500"
+              style={{ backgroundColor: COLORS.RED }}
+              onClick={() => updateColor(COLORS.RED)}
+            />
+            <div
+              className="h-4 w-4 rounded-sm hover:cursor-pointer hover:scale-105 transition-all hover:outline focue:outline outline-gray-500"
+              style={{ backgroundColor: COLORS.GREEN }}
+              onClick={() => updateColor(COLORS.GREEN)}
+            />
+            <div
+              className="h-4 w-4 rounded-sm hover:cursor-pointer hover:scale-105 transition-all hover:outline focue:outline outline-gray-500"
+              style={{ backgroundColor: COLORS.BLUE }}
+              onClick={() => updateColor(COLORS.BLUE)}
+            />
+            <div
+              className="h-4 w-4 rounded-sm hover:cursor-pointer hover:scale-105 transition-all hover:outline focue:outline outline-gray-500"
+              style={{ backgroundColor: COLORS.ORANGE }}
+              onClick={() => updateColor(COLORS.ORANGE)}
+            />
+            <div
+              className="h-4 w-4 rounded-sm  hover:cursor-pointer hover:scale-105 transition-all hover:outline focue:outline outline-gray-500"
+              style={{ backgroundColor: COLORS.YELLOW }}
+              onClick={() => updateColor(COLORS.YELLOW)}
+            />
+          </div>
         </div>
         <div>
+          <h3 className="font-serif text-gray-700">Brush size</h3>
           <input
             type="range"
             step={1}

@@ -4,12 +4,12 @@ import {
   createRoutesFromElements,
   RouterProvider,
 } from "react-router-dom";
-import Board from "./components/Board/Board";
+import Home from "./components/Home/Home";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route>
-      <Route path="/" element={<Board />} />
+      <Route path="/" element={<Home />} />
     </Route>
   )
 );
