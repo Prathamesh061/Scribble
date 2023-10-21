@@ -26,6 +26,14 @@ io.on("connection", (socket: Socket) => {
   socket.on("changeConfig", (arg: any) => {
     socket.broadcast.emit("changeConfig", arg);
   });
+
+  socket.on("activeItem", (arg: any) => {
+    socket.broadcast.emit("activeItem", arg);
+  });
+
+  socket.on("actionTaken", (arg: any) => {
+    socket.broadcast.emit("actionTaken", arg);
+  });
 });
 
 httpServer.listen(3000, "192.168.1.5", () => {

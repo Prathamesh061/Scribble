@@ -36,11 +36,9 @@
         let eraserSize = 10;
         let isErasing = false;
 
-        // Stack to store canvas states for undo and redo
         let canvasStateStack = [];
         let currentStateIndex = -1;
 
-        // Function to save the current canvas state
         function saveCanvasState() {
             currentStateIndex++;
             if (currentStateIndex < canvasStateStack.length) {
@@ -49,7 +47,6 @@
             canvasStateStack.push(canvas.toDataURL());
         }
 
-        // Function to undo
         function undo() {
             if (currentStateIndex > 0) {
                 currentStateIndex--;
@@ -62,7 +59,7 @@
             }
         }
 
-        // Function to redo
+
         function redo() {
             if (currentStateIndex < canvasStateStack.length - 1) {
                 currentStateIndex++;
@@ -85,7 +82,7 @@
         canvas.addEventListener("mouseup", () => {
             drawing = false;
             ctx.closePath();
-            saveCanvasState(); // Save the state after each action
+            saveCanvasState();
         });
 
         canvas.addEventListener("mousemove", draw);
@@ -160,7 +157,7 @@
         });
 
         document.getElementById("colorSelect").addEventListener("change", () => {
-            saveCanvasState(); // Save state before changing the fill color
+            saveCanvasState();
         });
 
         function clearCanvas() {
