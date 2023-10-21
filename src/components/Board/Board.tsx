@@ -8,7 +8,7 @@ import {
   changeColor,
 } from "../../features/toolbox/toolboxSlice";
 import { MENU_ITEMS } from "../../constants/constants";
-import { actionItemClick, menuItemClick } from "../../features/menu/menuSlice";
+import { actionItemClick } from "../../features/menu/menuSlice";
 
 const useAppDispatch: () => AppDispatch = useDispatch;
 const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
