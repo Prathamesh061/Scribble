@@ -1,132 +1,4 @@
 <!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shape Drawer and Filler</title>
-    <style>
-        canvas {
-            border: 1px solid #000;
-            cursor: crosshair;
-        }
-    </style>
-</head>
-
-<body>
-    <canvas id="drawingCanvas" width="1000" height="800"></canvas>
-    <input type="color" id="fillColorPicker">
-    <button onclick="startDrawing()">Start Drawing</button>
-    <button onclick="startFilling()">Start Filling</button>
-
-    <script>
-        const canvas = document.getElementById('drawingCanvas');
-        const ctx = canvas.getContext('2d');
-        const fillColorPicker = document.getElementById('fillColorPicker');
-        let drawing = false;
-        let filling = false;
-        let shapes = [];
-        let path = [];
-
-        function startDrawing() {
-            drawing = true;
-            filling = false;
-            path = [];
-            canvas.addEventListener('mousedown', handleMouseDown);
-            canvas.addEventListener('mouseup', handleMouseUp);
-        }
-
-        function startFilling() {
-            drawing = false;
-            filling = true;
-        }
-
-        function handleMouseDown(e) {
-            const x = e.offsetX;
-            const y = e.offsetY;
-            if (drawing) {
-                path.push({ x, y });
-                ctx.strokeStyle = fillColorPicker.value;
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(x, y);
-                canvas.addEventListener('mousemove', handleMouseMove);
-            }
-        }
-
-        function handleMouseMove(e) {
-            if (!drawing) return;
-            const x = e.offsetX;
-            const y = e.offsetY;
-            path.push({ x, y });
-            ctx.lineTo(x, y);
-            ctx.stroke();
-        }
-
-        function handleMouseUp() {
-            if (drawing) {
-                if (path.length > 1) {
-                    shapes.push(path);
-                }
-                canvas.removeEventListener('mousemove', handleMouseMove);
-            }
-        }
-
-        canvas.addEventListener('click', function (e) {
-            if (filling) {
-                const x = e.offsetX;
-                const y = e.offsetY;
-                fillArea(x, y);
-            }
-        });
-
-        function fillArea(x, y) {
-            const pixelStack = [{ x, y }];
-            const visited = new Array(canvas.width * canvas.height).fill(false);
-
-            while (pixelStack.length) {
-                const { x, y } = pixelStack.pop();
-                const pixelPos = y * canvas.width + x;
-
-                if (x >= 0 && x < canvas.width && y >= 0 && y < canvas.height && !visited[pixelPos]) {
-                    const pixel = ctx.getImageData(x, y, 1, 1).data;
-                    const targetColor = [0, 0, 0, 0]; // Color of the empty space
-
-                    if (
-                        pixel[0] === targetColor[0] &&
-                        pixel[1] === targetColor[1] &&
-                        pixel[2] === targetColor[2] &&
-                        pixel[3] === targetColor[3]
-                    ) {
-                        ctx.fillStyle = fillColorPicker.value;
-                        ctx.fillRect(x, y, 1, 1);
-                        visited[pixelPos] = true;
-
-                        pixelStack.push({ x: x + 1, y });
-                        pixelStack.push({ x: x - 1, y });
-                        pixelStack.push({ x, y: y + 1 });
-                        pixelStack.push({ x, y: y - 1 });
-                    }
-                }
-            }
-        }
-    </script>
-</body>
-
-</html>
-
-
-
-
-
-
-
-
-
-
-
-<!-- 
-<!DOCTYPE html>
 <html>
 
 <head>
@@ -229,7 +101,7 @@
             const y = e.clientY - canvas.offsetTop;
 
             if (isErasing) {
-                ctx.clearRect(x - eraserSize / 2, y - eraserSize / 2, eraserSize, eraserSize);
+                ctx.clearRect(11, 11, 55, 55);
             } else {
                 ctx.lineWidth = penSize;
                 ctx.lineCap = "round";
@@ -369,6 +241,124 @@
 
 
 
+    </script>
+</body>
+
+</html>
+
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shape Drawer and Filler</title>
+    <style>
+        canvas {
+            border: 1px solid #000;
+            cursor: crosshair;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="drawingCanvas" width="1000" height="800"></canvas>
+    <input type="color" id="fillColorPicker">
+    <button onclick="startDrawing()">Start Drawing</button>
+    <button onclick="startFilling()">Start Filling</button>
+
+    <script>
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+        const fillColorPicker = document.getElementById('fillColorPicker');
+        let drawing = false;
+        let filling = false;
+        let shapes = [];
+        let path = [];
+
+        function startDrawing() {
+            drawing = true;
+            filling = false;
+            path = [];
+            canvas.addEventListener('mousedown', handleMouseDown);
+            canvas.addEventListener('mouseup', handleMouseUp);
+        }
+
+        function startFilling() {
+            drawing = false;
+            filling = true;
+        }
+
+        function handleMouseDown(e) {
+            const x = e.offsetX;
+            const y = e.offsetY;
+            if (drawing) {
+                path.push({ x, y });
+                ctx.strokeStyle = fillColorPicker.value;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                canvas.addEventListener('mousemove', handleMouseMove);
+            }
+        }
+
+        function handleMouseMove(e) {
+            if (!drawing) return;
+            const x = e.offsetX;
+            const y = e.offsetY;
+            path.push({ x, y });
+            ctx.lineTo(x, y);
+            ctx.stroke();
+        }
+
+        function handleMouseUp() {
+            if (drawing) {
+                if (path.length > 1) {
+                    shapes.push(path);
+                }
+                canvas.removeEventListener('mousemove', handleMouseMove);
+            }
+        }
+
+        canvas.addEventListener('click', function (e) {
+            if (filling) {
+                const x = e.offsetX;
+                const y = e.offsetY;
+                fillArea(x, y);
+            }
+        });
+
+        function fillArea(x, y) {
+            const pixelStack = [{ x, y }];
+            const visited = new Array(canvas.width * canvas.height).fill(false);
+
+            while (pixelStack.length) {
+                const { x, y } = pixelStack.pop();
+                const pixelPos = y * canvas.width + x;
+
+                if (x >= 0 && x < canvas.width && y >= 0 && y < canvas.height && !visited[pixelPos]) {
+                    const pixel = ctx.getImageData(x, y, 1, 1).data;
+                    const targetColor = [0, 0, 0, 0]; // Color of the empty space
+
+                    if (
+                        pixel[0] === targetColor[0] &&
+                        pixel[1] === targetColor[1] &&
+                        pixel[2] === targetColor[2] &&
+                        pixel[3] === targetColor[3]
+                    ) {
+                        ctx.fillStyle = fillColorPicker.value;
+                        ctx.fillRect(x, y, 1, 1);
+                        visited[pixelPos] = true;
+
+                        pixelStack.push({ x: x + 1, y });
+                        pixelStack.push({ x: x - 1, y });
+                        pixelStack.push({ x, y: y + 1 });
+                        pixelStack.push({ x, y: y - 1 });
+                    }
+                }
+            }
+        }
     </script>
 </body>
 

@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import React, { useRef, useEffect } from "react";
 import socket from "../../../socket";
 import { TypedUseSelectorHook, useDispatch } from "react-redux";
 import { AppDispatch, RootState } from "../../store";
@@ -9,6 +9,7 @@ import {
 } from "../../features/toolbox/toolboxSlice";
 import { MENU_ITEMS } from "../../constants/constants";
 import { actionItemClick } from "../../features/menu/menuSlice";
+
 const useAppDispatch: () => AppDispatch = useDispatch;
 const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
@@ -47,16 +48,28 @@ function Board() {
       actionMenuItem === MENU_ITEMS.UNDO ||
       actionMenuItem === MENU_ITEMS.REDO
     ) {
-      if (historyPointer.current > 0 && actionMenuItem === MENU_ITEMS.UNDO)
-        historyPointer.current -= 1;
-      if (
-        historyPointer.current < drawHistory.current.length - 1 &&
-        actionMenuItem === MENU_ITEMS.REDO
-      )
+      if (actionMenuItem === MENU_ITEMS.UNDO) {
+        if (historyPointer.current >= 0) {
+          historyPointer.current -= 1;
+        }
+      } else if (
+        actionMenuItem === MENU_ITEMS.REDO &&
+        historyPointer.current < drawHistory.current.length - 1
+      ) {
         historyPointer.current += 1;
+      } else {
+        return;
+      }
+
       const imageData = drawHistory.current[historyPointer.current];
-      context?.putImageData(imageData, 0, 0);
+
+      if (imageData) {
+        context?.putImageData(imageData, 0, 0);
+      } else {
+        context?.clearRect(0, 0, canvas.width, canvas.height);
+      }
     }
+
     dispatch(actionItemClick(null));
   }, [actionMenuItem, dispatch]);
 
@@ -71,8 +84,14 @@ function Board() {
       size: number | undefined
     ) => {
       if (context) {
-        context.strokeStyle = color ?? context.strokeStyle;
-        context.lineWidth = (size ?? context.lineWidth) * 2;
+        if (activeMenuItem === MENU_ITEMS.ERASER) {
+          context.globalCompositeOperation = "destination-out";
+          context.lineWidth = (size ?? context.lineWidth) * 2;
+        } else {
+          context.globalCompositeOperation = "source-over";
+          context.strokeStyle = color ?? context.strokeStyle;
+          context.lineWidth = (size ?? context.lineWidth) * 2;
+        }
       }
     };
 
@@ -94,7 +113,7 @@ function Board() {
     return () => {
       socket.off("changeConfig", handleChangeConfig);
     };
-  }, [color, size]);
+  }, [color, size, activeMenuItem]);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -121,27 +140,27 @@ function Board() {
       context?.stroke();
     };
 
-    const handleMouseDown = (e: any) => {
+    const handleMouseDown = (e: MouseEvent | TouchEvent) => {
       shouldDraw.current = true;
       beginPath(
-        e.clientX || e.touches[0].clientX,
-        e.clientY || e.touches[0].clientY
+        (e as MouseEvent).clientX || (e as TouchEvent).touches[0].clientX,
+        (e as MouseEvent).clientY || (e as TouchEvent).touches[0].clientY
       );
       socket.emit("beginPath", {
-        x: e.clientX || e.touches[0].clientX,
-        y: e.clientY || e.touches[0].clientY,
+        x: (e as MouseEvent).clientX || (e as TouchEvent).touches[0].clientX,
+        y: (e as MouseEvent).clientY || (e as TouchEvent).touches[0].clientY,
       });
     };
 
-    const handleMouseMove = (e: any) => {
+    const handleMouseMove = (e: MouseEvent | TouchEvent) => {
       if (!shouldDraw.current) return;
       drawLine(
-        e.clientX || e.touches[0].clientX,
-        e.clientY || e.touches[0].clientY
+        (e as MouseEvent).clientX || (e as TouchEvent).touches[0].clientX,
+        (e as MouseEvent).clientY || (e as TouchEvent).touches[0].clientY
       );
       socket.emit("drawLine", {
-        x: e.clientX || e.touches[0].clientX,
-        y: e.clientY || e.touches[0].clientY,
+        x: (e as MouseEvent).clientX || (e as TouchEvent).touches[0].clientX,
+        y: (e as MouseEvent).clientY || (e as TouchEvent).touches[0].clientY,
       });
     };
 
@@ -193,6 +212,7 @@ function Board() {
       socket.off("drawLine", handleDrawLine);
     };
   }, [canvasRef]);
+
   return <canvas ref={canvasRef} className="absolute bg-gray-200"></canvas>;
 }
 

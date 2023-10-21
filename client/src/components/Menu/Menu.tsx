@@ -2,9 +2,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPencil,
   faEraser,
-  faRotateLeft,
-  faRotateRight,
-  faFileArrowDown,
   faArrowLeftRotate,
   faArrowRightRotate,
   faCircleDown,
