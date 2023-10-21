@@ -1,111 +1,199 @@
-// import { useRef, useEffect } from "react";
-// import socket from "../../../socket";
+import { useRef, useEffect } from "react";
+import socket from "../../../socket";
+import { TypedUseSelectorHook, useDispatch } from "react-redux";
+import { AppDispatch, RootState } from "../../store";
+import { useSelector } from "react-redux";
+import {
+  changeBrushSize,
+  changeColor,
+} from "../../features/toolbox/toolboxSlice";
+import { MENU_ITEMS } from "../../constants/constants";
+import { actionItemClick } from "../../features/menu/menuSlice";
+const useAppDispatch: () => AppDispatch = useDispatch;
+const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
-// function Board() {
-//   const canvasRef = useRef<HTMLCanvasElement>(null);
+interface Path {
+  x: number;
+  y: number;
+}
 
-//    useEffect(() => {
-//         if (!canvasRef.current) return
-//         const canvas = canvasRef.current;
-//         const context = canvas.getContext('2d')
+function Board() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const shouldDraw = useRef<boolean>(false);
+  const drawHistory = useRef<ImageData[]>([]);
+  const historyPointer = useRef<number>(0);
+  const dispatch = useAppDispatch();
+  const { activeMenuItem, actionMenuItem } = useAppSelector(
+    (state) => state.menu
+  );
 
-//         const changeConfig = (color: string, size:number) => {
-//             if(context) {
-//               context.strokeStyle = color
-//             context.lineWidth = size
-//             }
-//         }
+  const { color, size } = useAppSelector(
+    (state) => state.toolbox[activeMenuItem]
+  );
 
-//         const handleChangeConfig = (config) => {
-//             changeConfig(config.color, config.size)
-//         }
-//         changeConfig(color, size)
-//         socket.on('changeConfig', handleChangeConfig)
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const context = canvas.getContext("2d");
 
-//         return () => {
-//             socket.off('changeConfig', handleChangeConfig)
-//         }
-//     }, [color, size])
+    if (actionMenuItem === MENU_ITEMS.DOWNLOAD) {
+      const imageData = canvas.toDataURL("image/png");
+      const downloadLink = document.createElement("a");
 
-//   useEffect(() => {
-//     if (!canvasRef.current) return;
-//     const canvas = canvasRef.current;
+      downloadLink.href = imageData;
+      downloadLink.download = "scribble.png";
+      downloadLink.click();
+    } else if (
+      actionMenuItem === MENU_ITEMS.UNDO ||
+      actionMenuItem === MENU_ITEMS.REDO
+    ) {
+      if (historyPointer.current > 0 && actionMenuItem === MENU_ITEMS.UNDO)
+        historyPointer.current -= 1;
+      if (
+        historyPointer.current < drawHistory.current.length - 1 &&
+        actionMenuItem === MENU_ITEMS.REDO
+      )
+        historyPointer.current += 1;
+      const imageData = drawHistory.current[historyPointer.current];
+      context?.putImageData(imageData, 0, 0);
+    }
+    dispatch(actionItemClick(null));
+  }, [actionMenuItem, dispatch]);
 
-//     const context: CanvasRenderingContext2D | null = canvas.getContext("2d");
+  useEffect(() => {
+    if (!canvasRef.current) return;
 
-//     canvas.width = window.innerWidth;
-//     canvas.height = window.innerHeight;
+    const canvas = canvasRef.current;
+    const context = canvas.getContext("2d");
 
-//     function updateWindow() {
-//       canvas.width = window.innerWidth;
-//       canvas.height = window.innerHeight;
-//     }
-//     window.addEventListener("resize", updateWindow);
+    const changeConfig = (
+      color: string | undefined,
+      size: number | undefined
+    ) => {
+      if (context) {
+        context.strokeStyle = color ?? context.strokeStyle;
+        context.lineWidth = (size ?? context.lineWidth) * 2;
+      }
+    };
 
-//     const beginPath = (x: number, y: number) => {
-//       context?.beginPath();
-//       context?.moveTo(x, y);
-//     };
+    changeConfig(color, size);
 
-//     const drawLine = (x: number, y: number) => {
-//       context?.lineTo(x, y);
-//       context?.stroke();
-//     };
-//     const handleMouseDown = (e: ) => {
-//       shouldDraw.current = true;
-//       beginPath(
-//         e.clientX || e.touches[0].clientX,
-//         e.clientY || e.touches[0].clientY
-//       );
-//       socket.emit("beginPath", {
-//         x: e.clientX || e.touches[0].clientX,
-//         y: e.clientY || e.touches[0].clientY,
-//       });
-//     };
+    function handleChangeConfig({
+      color,
+      size,
+    }: {
+      color: string;
+      size: number;
+    }) {
+      dispatch(changeBrushSize({ item: activeMenuItem, size: size }));
+      dispatch(changeColor({ item: activeMenuItem, color: color }));
+    }
 
-//     const handleMouseMove = (e) => {
-//       if (!shouldDraw.current) return;
-//       drawLine(
-//         e.clientX || e.touches[0].clientX,
-//         e.clientY || e.touches[0].clientY
-//       );
-//       socket.emit("drawLine", {
-//         x: e.clientX || e.touches[0].clientX,
-//         y: e.clientY || e.touches[0].clientY,
-//       });
-//     };
+    socket.on("changeConfig", handleChangeConfig);
 
-//     const handleMouseUp = (e) => {
-//       shouldDraw.current = false;
-//       const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-//       drawHistory.current.push(imageData);
-//       historyPointer.current = drawHistory.current.length - 1;
-//     };
+    return () => {
+      socket.off("changeConfig", handleChangeConfig);
+    };
+  }, [color, size]);
 
-//     const handleBeginPath = (path) => {
-//       beginPath(path.x, path.y);
-//     };
+  useEffect(() => {
+    if (!canvasRef.current) return;
 
-//     const handleDrawLine = (path) => {
-//       drawLine(path.x, path.y);
-//     };
+    const canvas = canvasRef.current;
+    const context: CanvasRenderingContext2D | null = canvas.getContext("2d");
 
-//     return () => {
-//       canvas.removeEventListener("mousedown", handleMouseDown);
-//       canvas.removeEventListener("mousemove", handleMouseMove);
-//       canvas.removeEventListener("mouseup", handleMouseUp);
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
-//       canvas.removeEventListener("touchstart", handleMouseDown);
-//       canvas.removeEventListener("touchmove", handleMouseMove);
-//       canvas.removeEventListener("touchend", handleMouseUp);
+    function updateWindow() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", updateWindow);
 
-//       window.removeEventListener("resize", updateWindow);
+    const beginPath = (x: number, y: number) => {
+      context?.beginPath();
+      context?.moveTo(x, y);
+    };
 
-//       socket.off("beginPath", handleBeginPath);
-//       socket.off("drawLine", handleDrawLine);
-//     };
-//   }, [canvasRef]);
-//   return <canvas ref={canvasRef} className="absolute bg-gray-200"></canvas>;
-// }
+    const drawLine = (x: number, y: number) => {
+      context?.lineTo(x, y);
+      context?.stroke();
+    };
 
-// export default Board;
+    const handleMouseDown = (e: any) => {
+      shouldDraw.current = true;
+      beginPath(
+        e.clientX || e.touches[0].clientX,
+        e.clientY || e.touches[0].clientY
+      );
+      socket.emit("beginPath", {
+        x: e.clientX || e.touches[0].clientX,
+        y: e.clientY || e.touches[0].clientY,
+      });
+    };
+
+    const handleMouseMove = (e: any) => {
+      if (!shouldDraw.current) return;
+      drawLine(
+        e.clientX || e.touches[0].clientX,
+        e.clientY || e.touches[0].clientY
+      );
+      socket.emit("drawLine", {
+        x: e.clientX || e.touches[0].clientX,
+        y: e.clientY || e.touches[0].clientY,
+      });
+    };
+
+    const handleMouseUp = (e: TouchEvent | MouseEvent) => {
+      if (context) {
+        shouldDraw.current = false;
+        const imageData = context.getImageData(
+          0,
+          0,
+          canvas.width,
+          canvas.height
+        );
+        drawHistory.current.push(imageData);
+        historyPointer.current = drawHistory.current.length - 1;
+      }
+    };
+
+    canvas.addEventListener("mousedown", handleMouseDown);
+    canvas.addEventListener("mousemove", handleMouseMove);
+    canvas.addEventListener("mouseup", handleMouseUp);
+
+    canvas.addEventListener("touchstart", handleMouseDown);
+    canvas.addEventListener("touchmove", handleMouseMove);
+    canvas.addEventListener("touchend", handleMouseUp);
+
+    const handleBeginPath = (path: Path) => {
+      beginPath(path.x, path.y);
+    };
+
+    const handleDrawLine = (path: Path) => {
+      drawLine(path.x, path.y);
+    };
+
+    socket.on("beginPath", handleBeginPath);
+    socket.on("drawLine", handleDrawLine);
+
+    return () => {
+      canvas.removeEventListener("mousedown", handleMouseDown);
+      canvas.removeEventListener("mousemove", handleMouseMove);
+      canvas.removeEventListener("mouseup", handleMouseUp);
+
+      canvas.removeEventListener("touchstart", handleMouseDown);
+      canvas.removeEventListener("touchmove", handleMouseMove);
+      canvas.removeEventListener("touchend", handleMouseUp);
+
+      window.removeEventListener("resize", updateWindow);
+
+      socket.off("beginPath", handleBeginPath);
+      socket.off("drawLine", handleDrawLine);
+    };
+  }, [canvasRef]);
+  return <canvas ref={canvasRef} className="absolute bg-gray-200"></canvas>;
+}
+
+export default Board;

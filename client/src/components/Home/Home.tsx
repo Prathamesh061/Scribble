@@ -5,7 +5,7 @@ import Board from "../Board/Board";
 function Home() {
   return (
     <div>
-      {/* <Board /> */}
+      <Board />
       <Menu />
       <Toolbox />
     </div>
