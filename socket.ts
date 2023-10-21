@@ -1,5 +1,5 @@
 import { io } from "socket.io-client";
-const URL = "http://192.168.1.5:3000";
+const URL = "https://scribble-l51d.onrender.com";
 const socket = io(URL);
 
 socket.on("connection", (socket) => {
