@@ -33,7 +33,12 @@ function Toolbox() {
   const dispatch = useAppDispatch();
 
   const updateBrushSize = (e: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch(changeBrushSize({ item: activeMenuItem, size: e.target.value }));
+    dispatch(
+      changeBrushSize({ item: MENU_ITEMS.PENCIL, size: e.target.value })
+    );
+    dispatch(
+      changeBrushSize({ item: MENU_ITEMS.ERASER, size: e.target.value })
+    );
     socket.emit("changeConfig", { color, size: e.target.value });
   };
 

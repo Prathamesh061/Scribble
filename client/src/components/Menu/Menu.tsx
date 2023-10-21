@@ -25,6 +25,7 @@ function Menu() {
   const handleActioItemClick = (itemName: string) => {
     dispatch(actionItemClick(itemName));
   };
+
   return (
     <div className="flex justify-center relative top-10">
       <div

@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import socket from "../../../socket";
 import { TypedUseSelectorHook, useDispatch } from "react-redux";
 import { AppDispatch, RootState } from "../../store";
@@ -8,7 +8,7 @@ import {
   changeColor,
 } from "../../features/toolbox/toolboxSlice";
 import { MENU_ITEMS } from "../../constants/constants";
-import { actionItemClick } from "../../features/menu/menuSlice";
+import { actionItemClick, menuItemClick } from "../../features/menu/menuSlice";
 
 const useAppDispatch: () => AppDispatch = useDispatch;
 const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
@@ -24,6 +24,8 @@ function Board() {
   const drawHistory = useRef<ImageData[]>([]);
   const historyPointer = useRef<number>(0);
   const dispatch = useAppDispatch();
+  const [isEraserActive, setIsEraserActive] = useState<boolean>(false);
+  const [activeAction, setActiveAction] = useState<string>("");
   const { activeMenuItem, actionMenuItem } = useAppSelector(
     (state) => state.menu
   );
@@ -46,15 +48,20 @@ function Board() {
       downloadLink.click();
     } else if (
       actionMenuItem === MENU_ITEMS.UNDO ||
-      actionMenuItem === MENU_ITEMS.REDO
+      actionMenuItem === MENU_ITEMS.REDO ||
+      activeAction
     ) {
-      if (actionMenuItem === MENU_ITEMS.UNDO) {
+      if (
+        actionMenuItem === MENU_ITEMS.UNDO ||
+        activeAction === MENU_ITEMS.UNDO
+      ) {
         if (historyPointer.current >= 0) {
           historyPointer.current -= 1;
         }
       } else if (
-        actionMenuItem === MENU_ITEMS.REDO &&
-        historyPointer.current < drawHistory.current.length - 1
+        activeAction === MENU_ITEMS.REDO ||
+        (actionMenuItem === MENU_ITEMS.REDO &&
+          historyPointer.current < drawHistory.current.length - 1)
       ) {
         historyPointer.current += 1;
       } else {
@@ -70,8 +77,19 @@ function Board() {
       }
     }
 
+    if (actionMenuItem) {
+      socket.emit("actionTaken", {
+        actionMenuItem: actionMenuItem,
+      });
+    }
+
+    socket.on("actionTaken", ({ actionMenuItem }) => {
+      setActiveAction(actionMenuItem);
+    });
+
     dispatch(actionItemClick(null));
-  }, [actionMenuItem, dispatch]);
+    setActiveAction("");
+  }, [actionMenuItem, dispatch, activeAction, actionMenuItem]);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -84,7 +102,7 @@ function Board() {
       size: number | undefined
     ) => {
       if (context) {
-        if (activeMenuItem === MENU_ITEMS.ERASER) {
+        if (activeMenuItem === MENU_ITEMS.ERASER || isEraserActive) {
           context.globalCompositeOperation = "destination-out";
           context.lineWidth = (size ?? context.lineWidth) * 2;
         } else {
@@ -104,16 +122,26 @@ function Board() {
       color: string;
       size: number;
     }) {
-      dispatch(changeBrushSize({ item: activeMenuItem, size: size }));
+      dispatch(changeBrushSize({ item: MENU_ITEMS.PENCIL, size: size }));
+      dispatch(changeBrushSize({ item: MENU_ITEMS.ERASER, size: size }));
       dispatch(changeColor({ item: activeMenuItem, color: color }));
     }
 
     socket.on("changeConfig", handleChangeConfig);
 
+    socket.emit("activeItem", {
+      activeMenuItem,
+    });
+
+    socket.on("activeItem", ({ activeMenuItem }) => {
+      setIsEraserActive(activeMenuItem === MENU_ITEMS.ERASER);
+      // dispatch(actionItemClick(MENU_ITEMS.ERASER));
+    });
+
     return () => {
       socket.off("changeConfig", handleChangeConfig);
     };
-  }, [color, size, activeMenuItem]);
+  }, [color, size, activeMenuItem, isEraserActive]);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -164,7 +192,7 @@ function Board() {
       });
     };
 
-    const handleMouseUp = (e: TouchEvent | MouseEvent) => {
+    const handleMouseUp = () => {
       if (context) {
         shouldDraw.current = false;
         const imageData = context.getImageData(
